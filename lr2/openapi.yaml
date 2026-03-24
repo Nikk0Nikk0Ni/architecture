@@ -1,0 +1,422 @@
+openapi: 3.1.0
+info:
+  title: Сайт заказа услуг
+  description: REST API сервис с JWT аутентификацией (Вариант 4)
+  version: 1.1.0
+paths:
+  /users:
+    post:
+      tags:
+      - Auth / Users
+      summary: Register User
+      description: Регистрация нового пользователя
+      operationId: register_user_users_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreate'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /login:
+    post:
+      tags:
+      - Auth / Users
+      summary: Login For Access Token
+      description: Аутентификация пользователя и выдача JWT токена
+      operationId: login_for_access_token_login_post
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Body_login_for_access_token_login_post'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /users/{login}:
+    get:
+      tags:
+      - Users
+      summary: Get User By Login
+      description: Поиск пользователя по логину
+      operationId: get_user_by_login_users__login__get
+      parameters:
+      - name: login
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Login
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /users/search/:
+    get:
+      tags:
+      - Users
+      summary: Search Users
+      description: Поиск пользователя по маске имя и фамилии
+      operationId: search_users_users_search__get
+      parameters:
+      - name: mask
+        in: query
+        required: true
+        schema:
+          type: string
+          description: Маска для поиска по имени или фамилии
+          title: Mask
+        description: Маска для поиска по имени или фамилии
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserResponse'
+                title: Response Search Users Users Search  Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /services:
+    get:
+      tags:
+      - Services
+      summary: Get All Services
+      description: Получение списка всех услуг
+      operationId: get_all_services_services_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/ServiceResponse'
+                type: array
+                title: Response Get All Services Services Get
+    post:
+      tags:
+      - Services
+      summary: Create Service
+      description: Создание услуги (ТРЕБУЕТСЯ АВТОРИЗАЦИЯ)
+      operationId: create_service_services_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceCreate'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - OAuth2PasswordBearer: []
+  /orders:
+    post:
+      tags:
+      - Orders
+      summary: Create Order
+      description: Добавление услуг в заказ (ТРЕБУЕТСЯ АВТОРИЗАЦИЯ)
+      operationId: create_order_orders_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderCreate'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - OAuth2PasswordBearer: []
+  /orders/user/{login}:
+    get:
+      tags:
+      - Orders
+      summary: Get User Orders
+      description: Получение заказов для пользователя
+      operationId: get_user_orders_orders_user__login__get
+      parameters:
+      - name: login
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Login
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OrderResponse'
+                title: Response Get User Orders Orders User  Login  Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+components:
+  schemas:
+    Body_login_for_access_token_login_post:
+      properties:
+        grant_type:
+          anyOf:
+          - type: string
+            pattern: ^password$
+          - type: 'null'
+          title: Grant Type
+        username:
+          type: string
+          title: Username
+        password:
+          type: string
+          format: password
+          title: Password
+        scope:
+          type: string
+          title: Scope
+          default: ''
+        client_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Client Id
+        client_secret:
+          anyOf:
+          - type: string
+          - type: 'null'
+          format: password
+          title: Client Secret
+      type: object
+      required:
+      - username
+      - password
+      title: Body_login_for_access_token_login_post
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    OrderCreate:
+      properties:
+        service_ids:
+          items:
+            type: string
+          type: array
+          title: Service Ids
+      type: object
+      required:
+      - service_ids
+      title: OrderCreate
+    OrderResponse:
+      properties:
+        id:
+          type: string
+          title: Id
+        user_login:
+          type: string
+          title: User Login
+        services:
+          items:
+            $ref: '#/components/schemas/ServiceResponse'
+          type: array
+          title: Services
+        total_price:
+          type: number
+          title: Total Price
+        status:
+          type: string
+          title: Status
+      type: object
+      required:
+      - id
+      - user_login
+      - services
+      - total_price
+      - status
+      title: OrderResponse
+    ServiceCreate:
+      properties:
+        title:
+          type: string
+          title: Title
+        description:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Description
+        price:
+          type: number
+          exclusiveMinimum: 0.0
+          title: Price
+      type: object
+      required:
+      - title
+      - price
+      title: ServiceCreate
+    ServiceResponse:
+      properties:
+        title:
+          type: string
+          title: Title
+        description:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Description
+        price:
+          type: number
+          exclusiveMinimum: 0.0
+          title: Price
+        id:
+          type: string
+          title: Id
+      type: object
+      required:
+      - title
+      - price
+      - id
+      title: ServiceResponse
+    UserCreate:
+      properties:
+        login:
+          type: string
+          title: Login
+          description: Уникальный логин пользователя
+        first_name:
+          type: string
+          title: First Name
+        last_name:
+          type: string
+          title: Last Name
+        password:
+          type: string
+          title: Password
+          description: Пароль пользователя
+      type: object
+      required:
+      - login
+      - first_name
+      - last_name
+      - password
+      title: UserCreate
+    UserResponse:
+      properties:
+        login:
+          type: string
+          title: Login
+          description: Уникальный логин пользователя
+        first_name:
+          type: string
+          title: First Name
+        last_name:
+          type: string
+          title: Last Name
+        id:
+          type: string
+          title: Id
+      type: object
+      required:
+      - login
+      - first_name
+      - last_name
+      - id
+      title: UserResponse
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+        input:
+          title: Input
+        ctx:
+          type: object
+          title: Context
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError
+  securitySchemes:
+    OAuth2PasswordBearer:
+      type: oauth2
+      flows:
+        password:
+          scopes: {}
+          tokenUrl: login

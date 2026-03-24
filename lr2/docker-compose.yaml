@@ -1,0 +1,8 @@
+version: '3.8'
+services:
+  profi-api:
+    build: .
+    container_name: profi-rest-api
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
